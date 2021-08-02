@@ -7,16 +7,20 @@ import android.content.pm.Signature;
 import android.os.Binder;
 import android.util.Log;
 
-import de.robv.android.xposed.IXposedHookZygoteInit;
+import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
-public class FakeSignatures implements IXposedHookZygoteInit {
+public class FakeSignatures implements IXposedHookLoadPackage {
     @Override
-    public void initZygote(StartupParam startupParam) {
-        final Class<?> ApplicationPackageManager = XposedHelpers.findClass("android.app.ApplicationPackageManager", null);
-        XposedBridge.hookAllMethods(ApplicationPackageManager, "getPackageInfo", new XC_MethodHook() {
+    public void handleLoadPackage(LoadPackageParam loadedPackage) {
+        if (!loadedPackage.packageName.equals("android"))
+            return;
+
+        final Class<?> PackageManagerService = XposedHelpers.findClass("com.android.server.pm.PackageManagerService", loadedPackage.classLoader);
+        XposedBridge.hookAllMethods(PackageManagerService, "generatePackageInfo", new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
                 PackageInfo pi = (PackageInfo) param.getResult();
