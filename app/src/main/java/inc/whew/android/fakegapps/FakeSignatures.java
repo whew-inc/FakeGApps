@@ -105,6 +105,18 @@ public class FakeSignatures implements IXposedHookLoadPackage {
         XposedBridge.hookAllMethods(hookedClass, "generatePackageInfo", hook);
     }
 
+    private static Class<?> findFirstLoadableClass(String... candidates) throws ClassNotFoundException {
+        ClassNotFoundException exc = new ClassNotFoundException();
+        for (String candidate : candidates) {
+            try {
+                return Class.forName(candidate);
+            } catch (ClassNotFoundException e) {
+                exc = e;
+            }
+        }
+        throw exc;
+    }
+
     @TargetApi(android.os.Build.VERSION_CODES.P)
     private SigningInfo createSigningInfo(Signature sig, PublicKey publicKey) {
         final int SIGNING_BLOCK_V3 = 3;
@@ -115,7 +127,11 @@ public class FakeSignatures implements IXposedHookLoadPackage {
         // Unfortunately, SigningDetails is not exported in SDK, so we have to rely on reflection.
         // Also, public SigningInfo constructor is only available from API 35, so we can't use it.
         try {
-            Class<?> signingDetailsClass = Class.forName("android.content.pm.SigningDetails");
+            Class<?> signingDetailsClass = findFirstLoadableClass(
+                "android.content.pm.SigningDetails",
+                // Android 9 to 12 have SigningDetails embedded in the PackageParser class
+                "android.content.pm.PackageParser$SigningDetails"
+            );
             // https://cs.android.com/android/platform/superproject/+/1c19b376095446666df2b2d9290dac3ef71da846:frameworks/base/core/java/android/content/pm/SigningDetails.java;l=146
             Constructor<?> signingDetailsConstructor = signingDetailsClass.getDeclaredConstructor(
                 Signature[].class, // signatures
