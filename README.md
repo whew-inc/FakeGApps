@@ -1,7 +1,7 @@
 # FakeGApps
 Used in combination with [MicroG](https://microg.org/) to enable Google Cloud Messaging (GCM) and much more without proprietary Google Play Services.
 
-Supports Android 4.0 - 15
+Supports Android 4.0 - 16
 
 ## Prerequisites
 - **MicroG** installed (I personally recommend [nift4's microG Installer Revived](https://github.com/nift4/microg_installer_revived) to install MicroG)
